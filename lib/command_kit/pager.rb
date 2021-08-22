@@ -5,6 +5,8 @@ require 'command_kit/env/path'
 require 'command_kit/stdio'
 require 'command_kit/terminal'
 
+require 'shellwords'
+
 module CommandKit
   #
   # Allows opening a pager, such as `less` or `more`.
@@ -114,6 +116,45 @@ module CommandKit
           Process.waitpid(pid)
         rescue Errno::EPIPE, Errno::ECHILD
         end
+      end
+    end
+
+    #
+    # Pipes a command into the pager.
+    #
+    # @param [String] command
+    #   The command to run.
+    #
+    # @return [Boolean]
+    #   Indicates whether the command exited successfully or not.
+    #
+    # @note
+    #   If multiple arguments are given, they will be shell-escaped and executed
+    #   as a single command.
+    #   If a single command is given, it will not be shell-escaped to allow
+    #   executing compound shell commands.
+    #
+    # @example Pipe a single command into the pager:
+    #   run_in_pager 'find', '.', '-name', '*.md'
+    # 
+    # @example Pipe a compound command into the pager:
+    #   run_in_pager "wc -l /path/to/wordlists/*.txt | sort -n"
+    #
+    # @api public
+    #
+    # @since 0.2.0
+    #
+    def run_in_pager(command,*arguments)
+      if @pager_command
+        unless arguments.empty?
+          command = [command, *arguments].map { |arg|
+            Shellwords.shellescape(arg)
+          }.join(' ')
+        end
+
+        system("#{command} | #{@pager_command}")
+      else
+        system(command.to_s,*arguments.map(&:to_s))
       end
     end
 
