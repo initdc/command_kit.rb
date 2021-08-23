@@ -144,7 +144,7 @@ module CommandKit
     #
     # @since 0.2.0
     #
-    def run_in_pager(command,*arguments)
+    def pipe_to_pager(command,*arguments)
       if @pager_command
         unless arguments.empty?
           command = [command, *arguments].map { |arg|
