@@ -120,6 +120,34 @@ module CommandKit
     end
 
     #
+    # Pages the data if it's longer the terminal's height, otherwise prints the
+    # data to {Stdio#stdout stdout}.
+    #
+    # @param [Array<String>, #to_s] data
+    #   The data to print.
+    #
+    # @example
+    #   print_or_page(data)
+    #
+    # @example Print or pages the contents of a file:
+    #   print_or_page(File.read(file))
+    #
+    # @api public
+    #
+    def print_or_page(data)
+      line_count = case data
+                   when Array  then data.length
+                   else             data.to_s.each_line.count
+                   end
+
+      if line_count > terminal_height
+        pager { |io| io.puts(data) }
+      else
+        stdout.puts(data)
+      end
+    end
+
+    #
     # Pipes a command into the pager.
     #
     # @param [String] command
@@ -147,42 +175,12 @@ module CommandKit
     def pipe_to_pager(command,*arguments)
       if @pager_command
         unless arguments.empty?
-          command = [command, *arguments].map { |arg|
-            Shellwords.shellescape(arg)
-          }.join(' ')
+          command = Shellwords.shelljoin([command, *arguments])
         end
 
         system("#{command} | #{@pager_command}")
       else
         system(command.to_s,*arguments.map(&:to_s))
-      end
-    end
-
-    #
-    # Pages the data if it's longer the terminal's height, otherwise prints the
-    # data to {Stdio#stdout stdout}.
-    #
-    # @param [Array<String>, #to_s] data
-    #   The data to print.
-    #
-    # @example
-    #   print_or_page(data)
-    #
-    # @example Print or pages the contents of a file:
-    #   print_or_page(File.read(file))
-    #
-    # @api public
-    #
-    def print_or_page(data)
-      line_count = case data
-                   when Array  then data.length
-                   else             data.to_s.each_line.count
-                   end
-
-      if line_count > terminal_height
-        pager { |io| io.puts(data) }
-      else
-        stdout.puts(data)
       end
     end
   end
