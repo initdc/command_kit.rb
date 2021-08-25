@@ -150,8 +150,11 @@ module CommandKit
     #
     # Pipes a command into the pager.
     #
-    # @param [String] command
-    #   The command to run.
+    # @param [#to_s] command
+    #   The program or command to run.
+    #
+    # @param [Array<#to_s>] arguments
+    #   Additional arguments for the program.
     #
     # @return [Boolean]
     #   Indicates whether the command exited successfully or not.
